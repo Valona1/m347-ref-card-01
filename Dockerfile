@@ -1,5 +1,4 @@
-# Java 17 schlankes Image
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk
 
 # Arbeitsverzeichnis
 WORKDIR /app
