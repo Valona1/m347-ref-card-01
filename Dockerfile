@@ -1,13 +1,26 @@
-FROM eclipse-temurin:17-jdk
-
-# Arbeitsverzeichnis
+FROM maven:3.8.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Maven-Build erzeugt später eine JAR --> wir kopieren die JAR ins Image
-COPY target/*.jar app.jar
+# Copy Maven descriptor
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 
-# Port freigeben
+# Pre-download dependencies
+RUN mvn dependency:go-offline -B
+
+# Copy project source
+COPY src ./src
+
+# Build shaded jar (fat jar)
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+# Copy jar from build stage
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-# Java-App starten
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
